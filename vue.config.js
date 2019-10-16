@@ -24,7 +24,9 @@ module.exports = {
           },
           params: req.query
         }).then((response) => {
-          res.json(response.data)
+          setTimeout(()=>{
+            res.json(response.data)
+          },3000)
         }).catch((e) => {
           console.log(e)
         })
