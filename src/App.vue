@@ -1,9 +1,17 @@
 <template>
   <div id="app">
-    hello world
+    <m-header />
   </div>
 </template>
+<script>
+  import MHeader from '@components/m-header/m-header'
 
+  export default {
+    components: {
+      MHeader
+    }
+  }
+</script>
 <style lang="less">
 
 </style>
