@@ -46,6 +46,12 @@
       },
       refresh () {
         this.scroll && this.scroll.refresh()
+      },
+      scrollTo () {
+        this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments) // 方法的this为调用他的组件
+      },
+      scrollToElement () {
+        this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments) // 方法的this为调用他的组件
       }
     },
     watch: {
