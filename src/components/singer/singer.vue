@@ -1,6 +1,7 @@
 <template>
   <div class="singer">
-    <list-view :data="singers" />
+    <list-view :data="singers" @select="selectSinger" />
+    <router-view />
   </div>
 </template>
 
@@ -9,6 +10,13 @@
   import { ERR_OK } from '@api/config'
   import Singer from '@common/js/singer'
   import ListView from '@base/listview/listview'
+  import {
+    createNamespacedHelpers
+  } from 'vuex'
+
+  const {
+    mapMutations
+  } = createNamespacedHelpers('singer')
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
@@ -26,11 +34,19 @@
       this._getSingerList()
     },
     methods: {
+      ...mapMutations({
+        setSinger: 'SET_SINGER'
+      }),
+      selectSinger (singer) {
+        this.$router.push({
+          path: `/singer/${singer.id}`
+        })
+        this.setSinger(singer)
+      },
       _getSingerList () {
         getSingerList().then((res) => {
           if (res.code === ERR_OK) {
             this.singers = this._normalizeSinger(res.data.list)
-            console.log(this.singers)
           }
         })
       },
@@ -66,7 +82,6 @@
           if (val.title.match(/[a-zA-Z]/)) {
             ret.push(val)
           } else if (val.title === HOT_NAME) {
-            console.log(val)
             hot.push(val) // hot其实就一项
           }
         }
@@ -85,5 +100,13 @@
     top: 88px;
     bottom: 0;
     width: 100%;
+  }
+
+  .slide-enter-active, .slide-leave-active {
+    transition: all 0.3s
+  }
+
+  .slide-enter, .slide-leave-to {
+    transform: translate3d(100%, 0, 0)
   }
 </style>
