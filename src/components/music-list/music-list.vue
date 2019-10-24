@@ -6,7 +6,7 @@
     <h1 class="title" v-html="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
       <div class="play-wrapper">
-        <div class="play" ref="playBtn" v-show="songs.length>0" @click="random">
+        <div class="play" ref="playBtn" v-show="songs&&songs.length>0" @click="random">
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
@@ -17,9 +17,9 @@
     <scroll @scroll="scroll" :probe-type="probeType" :listen-scroll="listenScroll" :data="songs" class="list"
             ref="list">
       <div class="song-list-wrapper">
-        <song-list @select="selectItem" :songs="songs" />
+        <song-list @select="selectItem" :songs="songs" :rank="rank" />
       </div>
-      <div v-show="!songs.length" class="loading-container">
+      <div v-show="!songs||!songs.length" class="loading-container">
         <loading></loading>
       </div>
     </scroll>
@@ -56,6 +56,10 @@
       title: {
         type: String,
         default: ''
+      },
+      rank: {
+        type: Boolean,
+        default: false
       }
     },
     components: {
