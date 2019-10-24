@@ -6,7 +6,7 @@
     <h1 class="title" v-html="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
       <div class="play-wrapper">
-        <div class="play" ref="playBtn" v-show="songs.length>0">
+        <div class="play" ref="playBtn" v-show="songs.length>0" @click="random">
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
@@ -115,7 +115,8 @@
     },
     methods: {
       ...mapActions([
-        'selectPlay'
+        'selectPlay',
+        'randomPlay'
       ]),
       scroll (pos) {
         this.scrollY = pos.y
@@ -123,10 +124,15 @@
       back () {
         this.$router.back()
       },
-      selectItem (item, index) {
+      selectItem (item, index) { // item虽然用不到，但是组件还是要传出来，因为这是组件该做的事，外部不该定义子组件行为
         this.selectPlay({
           list: this.songs,
           index
+        })
+      },
+      random () {
+        this.randomPlay({
+          list: this.songs
         })
       }
     }
