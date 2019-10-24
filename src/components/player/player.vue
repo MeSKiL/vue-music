@@ -35,6 +35,9 @@
                 <p ref="lyricLine" class="text" :class="{'current':currentLineNum===index}"
                    v-for="(line,index) in currentLyric.lines" :key="index">{{line.txt}}</p>
               </div>
+              <div class="pure-music" v-show="isPureMusic">
+                <p>{{pureMusicLyric}}</p>
+              </div>
             </div>
           </scroll>
         </div>
@@ -91,8 +94,8 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio" :src="currentSong.url" @playing="ready" @error="error" @timeupdate="updateTime"
-           @ended="end"></audio>
+    <audio ref="audio" @playing="ready" @error="error" @timeupdate="updateTime"
+           @ended="end" @pause="paused"></audio>
   </div>
 </template>
 
@@ -113,8 +116,11 @@
   const transitionDuration = prefixStyle('transitionDuration')
 
   const {
-    mapGetters, mapMutations
+    mapGetters, mapMutations, mapActions
   } = createNamespacedHelpers('play')
+
+  const timeExp = /\[(\d{2}):(\d{2}):(\d{2})]/g
+
   export default {
     name: 'player',
     components: {
@@ -127,11 +133,14 @@
         currentLyric: null,
         currentLineNum: 0,
         currentShow: 'cd',
-        playingLyric: ''
+        playingLyric: '',
+        isPureMusic: false,
+        pureMusicLyric: ''
       }
     },
     created () {
       this.touch = {}
+      this.canLyricPlay = false
     },
     computed: {
       ...mapGetters([
@@ -164,18 +173,32 @@
     },
     watch: {
       currentSong (newSong, oldSong) {
-        if (newSong === oldSong) {
+        if (!newSong.id || !newSong.url || newSong.id === oldSong.id) {
           return
         }
+        this.songReady = false
+        this.canLyricPlay = false
         if (this.currentLyric) {
           this.currentLyric.stop()
+          // 重置为null
+          this.currentLyric = null
+          this.currentTime = 0
+          this.playingLyric = ''
+          this.currentLineNum = 0
         }
-        setTimeout(() => {
-          this.$refs.audio.play()
-          this.getLyric()
-        }, 1000)
+        this.$refs.audio.src = newSong.url
+        this.$refs.audio.play()
+        // // 若歌曲 5s 未播放，则认为超时，修改状态确保可以切换歌曲。
+        clearTimeout(this.timer)
+        this.timer = setTimeout(() => {
+          this.songReady = true
+        }, 5000)
+        this.getLyric()
       },
       playing (newPlaying) {
+        if (!this.songReady) {
+          return
+        }
         const audio = this.$refs.audio
         this.$nextTick(() => {
           newPlaying ? audio.play() : audio.pause()
@@ -183,6 +206,9 @@
       }
     },
     methods: {
+      ...mapActions([
+        'savePlayHistory'
+      ]),
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
         setPlayingState: 'SET_PLAYING_STATE',
@@ -260,6 +286,7 @@
       loop () {
         this.$refs.audio.currentTime = 0
         this.$refs.audio.play()
+        this.setPlayingState(true)
         if (this.currentLyric) {
           this.currentLyric.seek(0)
         }
@@ -301,7 +328,21 @@
         this.songReady = false
       },
       ready () {
+        clearTimeout(this.timer)
+        // 监听 playing 这个事件可以确保慢网速或者快速切换歌曲导致的 DOM Exception
         this.songReady = true
+        this.canLyricPlay = true
+        // this.savePlayHistory(this.currentSong)
+        // 如果歌曲的播放晚于歌词的出现，播放的时候需要同步歌词
+        if (this.currentLyric && !this.isPureMusic) {
+          this.currentLyric.seek(this.currentTime * 1000)
+        }
+      },
+      paused() {
+        this.setPlayingState(false)
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
       },
       error () {
         this.songReady = true
@@ -345,9 +386,19 @@
       },
       getLyric () {
         this.currentSong.getLyric().then((lyric) => {
+          if (this.currentSong.lyric !== lyric) {
+            return
+          }
           this.currentLyric = new Lyric(lyric, this.handleLyric)
-          if (this.playing) {
-            this.currentLyric.play()
+          this.isPureMusic = !this.currentLyric.lines.length
+          if (this.isPureMusic) {
+            this.pureMusicLyric = this.currentLyric.lrc.replace(timeExp, '').trim()
+            this.playingLyric = this.pureMusicLyric
+          } else {
+            if (this.playing && this.canLyricPlay) {
+              // 这个时候有可能用户已经播放了歌曲，要切到对应位置
+              this.currentLyric.seek(this.currentTime * 1000)
+            }
           }
         }).catch(() => {
           this.currentLyric = null

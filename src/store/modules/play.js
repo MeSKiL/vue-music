@@ -6,8 +6,10 @@ import {
   SET_PLAY_MODE,
   SET_PLAYING_STATE,
   SET_PLAYLIST,
-  SET_SEQUENCE_LIST
+  SET_SEQUENCE_LIST,
+  SET_PLAY_HISTORY
 } from '../mutation-types'
+import { savePlay } from '@common/js/cache'
 
 function findIndex (list, song) {
   return list.findIndex(item => {
@@ -23,7 +25,8 @@ const play = {
     playlist: [], // 播放列表
     sequenceList: [], // 展示列表
     mode: playMode.sequence,
-    currentIndex: -1
+    currentIndex: -1,
+    playHistory: []
   },
   getters: {
     playing: state => state.playing,
@@ -52,6 +55,9 @@ const play = {
     },
     [SET_CURRENT_INDEX] (state, index) {
       state.currentIndex = index
+    },
+    [SET_PLAY_HISTORY] (state, history) {
+      state.playHistory = history
     }
   },
   actions: {
@@ -75,6 +81,9 @@ const play = {
       commit(SET_CURRENT_INDEX, 0)
       commit(SET_FULL_SCREEN, true)
       commit(SET_PLAYING_STATE, true)
+    },
+    savePlayHistory ({ commit }, song) {
+      commit(SET_PLAY_HISTORY, savePlay(song))
     }
   }
 }

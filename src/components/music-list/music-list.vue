@@ -31,9 +31,8 @@
   import SongList from '@base/song-list/song-list'
   import Loading from '@base/loading/loading'
   import { prefixStyle } from '@common/js/dom'
-  import {
-    createNamespacedHelpers
-  } from 'vuex'
+  import { playlistMixin } from '@common/js/mixin'
+  import { createNamespacedHelpers } from 'vuex'
 
   const {
     mapActions
@@ -44,6 +43,7 @@
   const backdrop = prefixStyle('backdrop-filter')
 
   export default {
+    mixins: [playlistMixin],
     props: {
       bgImage: {
         type: String,
@@ -118,6 +118,11 @@
         'selectPlay',
         'randomPlay'
       ]),
+      handlePlaylist (playlist) {
+        console.log(playlist)
+        this.$refs.list.$el.style.bottom = playlist.length > 0 ? '60px' : ''
+        this.$refs.list.refresh()
+      },
       scroll (pos) {
         this.scrollY = pos.y
       },
