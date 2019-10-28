@@ -67,7 +67,7 @@
               <i @click="next" class="icon-next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon icon-not-favorite"></i>
+              <i class="icon" @click="toggleFavorite(currentSong)" :class="getFavoriteIcon(currentSong)"></i>
             </div>
           </div>
         </div>
@@ -89,11 +89,12 @@
             <i @click.stop="togglePlaying" class="icon-mini" :class="miniIcon"></i>
           </progress-circle>
         </div>
-        <div class="control">
+        <div class="control" @click.stop="showPlaylist">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <playlist ref="playlist"></playlist>
     <audio ref="audio" @playing="ready" @error="error" @timeupdate="updateTime"
            @ended="end" @pause="paused"></audio>
   </div>
@@ -107,10 +108,11 @@
   import { prefixStyle } from '@common/js/dom'
   import ProgressBar from '@base/progress-bar/progress-bar'
   import ProgressCircle from '@base/progress-circle/progress-circle'
-  import { playMode } from '@common/js/config'
-  import { shuffle } from '@common/js/util'
   import Lyric from 'lyric-parser'
   import Scroll from '@base/scroll/scroll'
+  import Playlist from '@components/playlist/playlist'
+  import { playerMixin } from '@common/js/mixin'
+  import { playMode } from '@common/js/config'
 
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
@@ -122,9 +124,10 @@
   const timeExp = /\[(\d{2}):(\d{2}):(\d{2})]/g
 
   export default {
+    mixins: [playerMixin],
     name: 'player',
     components: {
-      ProgressBar, ProgressCircle, Scroll
+      ProgressBar, ProgressCircle, Scroll, Playlist
     },
     data () {
       return {
@@ -145,16 +148,8 @@
     computed: {
       ...mapGetters([
         'fullScreen',
-        'playlist',
-        'currentSong',
-        'playing',
-        'currentIndex',
-        'mode',
-        'sequenceList'
+        'currentIndex'
       ]),
-      iconMode () {
-        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
-      },
       playIcon () {
         return this.playing ? 'icon-pause' : 'icon-play'
       },
@@ -210,11 +205,7 @@
         'savePlayHistory'
       ]),
       ...mapMutations({
-        setFullScreen: 'SET_FULL_SCREEN',
-        setPlayingState: 'SET_PLAYING_STATE',
-        setCurrentIndex: 'SET_CURRENT_INDEX',
-        setPlayMode: 'SET_PLAY_MODE',
-        setPlayList: 'SET_PLAYLIST'
+        setFullScreen: 'SET_FULL_SCREEN'
       }),
       back () {
         this.setFullScreen(false)
@@ -297,6 +288,7 @@
         }
         if (this.playlist.length === 1) {
           this.loop()
+          return
         } else {
           let index = this.currentIndex + 1
           if (index === this.playlist.length) {
@@ -315,6 +307,7 @@
         }
         if (this.playlist.length === 1) {
           this.loop()
+          return
         } else {
           let index = this.currentIndex - 1
           if (index === -1) {
@@ -332,13 +325,13 @@
         // 监听 playing 这个事件可以确保慢网速或者快速切换歌曲导致的 DOM Exception
         this.songReady = true
         this.canLyricPlay = true
-        // this.savePlayHistory(this.currentSong)
+        this.savePlayHistory(this.currentSong)
         // 如果歌曲的播放晚于歌词的出现，播放的时候需要同步歌词
         if (this.currentLyric && !this.isPureMusic) {
           this.currentLyric.seek(this.currentTime * 1000)
         }
       },
-      paused() {
+      paused () {
         this.setPlayingState(false)
         if (this.currentLyric) {
           this.currentLyric.stop()
@@ -365,24 +358,6 @@
         if (this.currentLyric) {
           this.currentLyric.seek(currentTime * 1000)
         }
-      },
-      changeMode () {
-        const mode = (this.mode + 1) % 3
-        this.setPlayMode(mode)
-        let list = null
-        if (mode === playMode.random) {
-          list = shuffle(this.sequenceList)
-        } else {
-          list = this.sequenceList
-        }
-        this.resetCurrentIndex(list)
-        this.setPlayList(list)
-      },
-      resetCurrentIndex (list) {
-        let index = list.findIndex((item) => {
-          return item.id === this.currentSong.id
-        })
-        this.setCurrentIndex(index)
       },
       getLyric () {
         this.currentSong.getLyric().then((lyric) => {
@@ -473,6 +448,9 @@
         this.$refs.middleL.style.opacity = opacity
         this.$refs.middleL.style['transitionDuration'] = `0`
         this.$refs.middleL.style[transitionDuration] = `${time}ms`
+      },
+      showPlaylist () {
+        this.$refs.playlist.show()
       },
       _pad (num, n = 2) {
         let len = num.toString().length

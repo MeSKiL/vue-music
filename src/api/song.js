@@ -65,7 +65,8 @@ export async function getSongsUrl (songs) {
 }
 
 export function getLyric (mid) {
-  const url = '/api/lyric'
+  const url = debug ? '/api/lyric' : 'http://ustbhuangyi.com/music/api/lyric'
+
   const data = Object.assign({}, commonParams, {
     songmid: mid,
     platform: 'yqq',

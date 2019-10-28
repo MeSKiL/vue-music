@@ -13,7 +13,7 @@
 
   const {
     mapGetters
-  } = createNamespacedHelpers('topList')
+  } = createNamespacedHelpers('disc')
   export default {
     props: ['id'],
     components: {
@@ -29,7 +29,7 @@
     },
     computed: {
       ...mapGetters([
-        'topList'
+        'disc'
       ]),
       title () {
         return this.disc.dissname

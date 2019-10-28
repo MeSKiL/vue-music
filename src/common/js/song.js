@@ -32,7 +32,6 @@ export default class Song {
 }
 
 export function createSong (musicData) {
-  console.log(musicData)
   return new Song({
     id: musicData.songid,
     mid: musicData.songmid,
@@ -46,7 +45,7 @@ export function createSong (musicData) {
   })
 }
 
-function filterSinger (singer) {
+export function filterSinger (singer) {
   let ret = []
   if (!singer) {
     return ''
@@ -62,6 +61,7 @@ export function isValidMusic (musicData) {
 }
 
 export async function processSongsUrl (songs) {
+  console.log(songs)
   if (songs.length) {
     const res = await getSongsUrl(songs)
     console.log(res)

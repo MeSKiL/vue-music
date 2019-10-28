@@ -4,6 +4,8 @@ import singer from './modules/singer'
 import play from './modules/play'
 import disc from './modules/disc'
 import topList from './modules/topList'
+import search from './modules/search'
+import favorite from './modules/favorite'
 import createLogger from 'vuex/dist/logger'
 
 Vue.use(Vuex)
@@ -18,7 +20,9 @@ export default new Vuex.Store({
     singer,
     play,
     disc,
-    topList
+    topList,
+    search,
+    favorite
   },
   strict: debug,
   plugins: debug ? [createLogger()] : []
