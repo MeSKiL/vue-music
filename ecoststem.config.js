@@ -1,5 +1,5 @@
 module.exports = {
-  app: [
+  apps: [
     {
       name: 'vue-music',
       script: './prod.server.js',
