@@ -2,7 +2,8 @@ import jsonp from '@common/js/jsonp'
 import { commonParams, options } from './config'
 import axios from 'axios'
 
-const debug = process.env.NODE_ENV !== 'production'
+// const debug = process.env.NODE_ENV !== 'production'
+const debug = true
 
 export function getHotKey () {
   const url = 'https://c.y.qq.com/splcloud/fcgi-bin/gethotkey.fcg'
