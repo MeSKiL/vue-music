@@ -61,10 +61,8 @@ export function isValidMusic (musicData) {
 }
 
 export async function processSongsUrl (songs) {
-  console.log(songs)
   if (songs.length) {
     const res = await getSongsUrl(songs)
-    console.log(res)
     if (res.code === ERR_OK) {
       let midUrlInfo = res.url_mid.data.midurlinfo
       midUrlInfo.forEach((info, index) => {

@@ -123,7 +123,6 @@
         'randomPlay'
       ]),
       handlePlaylist (playlist) {
-        console.log(playlist)
         this.$refs.list.$el.style.bottom = playlist.length > 0 ? '60px' : ''
         this.$refs.list.refresh()
       },
