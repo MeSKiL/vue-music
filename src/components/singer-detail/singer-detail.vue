@@ -49,7 +49,6 @@
         const res = await getSingerDetail(this.singer.id)
         if (res.code === ERR_OK) {
           this.songs = await processSongsUrl(this._normalizeSongs(res.data.list))
-          console.log(this.songs)
         }
       },
       _normalizeSongs (list) {
